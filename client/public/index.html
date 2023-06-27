@@ -14,5 +14,98 @@
     </noscript>
     <div id="app"></div>
     <!-- built files will be auto injected -->
+    <template>
+    <div>
+       <script src="https://www.onirix.com/webar/ox-devicemotion.min.js"></script>
+         <iframe id="visor" style="position:fixed;top:0;left:0; right:0;bottom:0;z-index:999;max-width:100vw;width:100%;height:100%; display:block;border:none;"
+src="https://studio.onirix.com/projects/14e32abd4b884b0f95231cee67f35f92/webar?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjE4MTQwLCJwcm9qZWN0SWQiOjQ2MTk5LCJyb2xlIjozLCJpYXQiOjE2ODYzMjY2MTB9.EexpIiyg7752xRPj5jRFTk7UCCp3XhH8gxfdcaz26t8&background=alpha&preview=false&hide_controls=false&ar_button=false" allow="camera;gyroscope;accelerometer;magnetometer;fullscreen;xr-spatial-tracking;geolocation;"></iframe>
+    </div>
+</template>
+<script>
+import firebaseService from "../../services/firebase.service";
+import oxhuntFunctions from "../../services/functions.service";
+
+export default {
+    name: 'GameView',
+    data() {
+        return {
+            iframeUrl: null,
+            messageListener: (messageEvent) => this.onMessageReceived(messageEvent)
+        }
+    },
+    beforeMount() {
+        this.setIframeUrl();
+    },
+    async created() {
+        window.addEventListener('message', this.messageListener);
+    },
+    beforeUnmount() {
+        window.removeEventListener('message', this.messageListener); 
+    },
+    methods: {
+        async setIframeUrl() {
+            const settings = await firebaseService.getSettings();
+            const user = await firebaseService.getUser(true);
+            let scenesPlayed = '';
+            if (user.playedGames && 0 < user.playedGames.length) {
+                scenesPlayed = `&oxhuntPlayed=${user.playedGames.map( game => game.sceneOid).join()}`;
+            }
+            this.iframeUrl = `${settings.onirixHost}/projects/${settings.onirixProjectOid}/webar?token=${settings.onirixProjectToken}${scenesPlayed}&locale=${this.$i18next.language}`;           
+        },
+        async onMessageReceived(msg) {
+            if (msg && msg.data) {
+                try {
+                    const gameMessage = JSON.parse(msg.data);
+                    if ('oxhunt-game-end' === gameMessage.action) {
+                        try {
+                            const response = await this.saveScore(gameMessage.sceneOid, gameMessage.score);
+                            this.sendMessageToStudio(response, 'score-saved');
+                        } catch (error) {
+                            console.error(`Error on save score`, error.message);
+                            let msg = {
+                                title: error.message,
+                                detail: ''
+                            }
+                            if (error.message == 'Game already played.') {
+                                msg = {
+                                    type: 'played',
+                                    text: this.$t('game-played'),
+                                }
+                            } else if (error.message == 'Unknown game') {
+                                msg = {
+                                    type: 'played',
+                                    text: this.$t('game-location'),
+                                }
+                            } else {
+                                const settings = await firebaseService.getSettings();
+                                msg = {
+                                    type: 'closed',
+                                    title: this.$t('game-closed-title'),
+                                    text: this.$t('game-closed-text'),
+                                    detail: oxhuntFunctions.getDateString(settings),
+                                }
+                            }
+                            this.sendMessageToStudio(msg, 'error');    
+                        }
+                    } else if ('oxhunt-go-home' === gameMessage.action) {
+                        this.$router.push('/');
+                    }
+                } catch (error) {
+                    console.debug(`Unknown message`, msg.data, error);
+                }
+            }
+        },
+        async saveScore(sceneOid, score) {
+            const response = await firebaseService.saveScore(sceneOid, score);
+            return response;
+        },
+        sendMessageToStudio(msg, action) {
+            msg['origin']= 'OxHuntMusic';
+            msg['action']= action;
+            this.$refs.onirixIframe.contentWindow.postMessage(JSON.stringify(msg), '*');
+        }
+    }
+}
+</script>
   </body>
 </html>
