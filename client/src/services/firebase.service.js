@@ -1,4 +1,5 @@
 import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
 import { getFunctions, connectFunctionsEmulator, httpsCallable } from "firebase/functions";
 import Constants from '../constants';
 import authService from "./auth.service";
@@ -10,17 +11,18 @@ class FirebaseService {
         this._ADMIN_TOKEN = 'FIREBASE ADMIN ROKEN';
 
         const firebaseConfig = {
-            apiKey: "FIREBASE API KEY",
-            authDomain: "FIREBASE DOMAIN",
-            projectId: "oxhunt-bdbe4",
-            storageBucket: "GOOGLE STORAGE BUCKET",
-            messagingSenderId: "MESSAGING SENDER ID",
-            appId: "APP ID",
-            measurementId: "GOOGLE ANALYTICS ID"
+            apiKey: "AIzaSyAUVk7YHZyxrfwtYDRO5OrLWiHtDV1scf8",
+            authDomain: "yamademo-b091b.firebaseapp.com",
+            projectId: "yamademo-b091b",
+            storageBucket: "yamademo-b091b.appspot.com",
+            messagingSenderId: "812187326544",
+            appId: "1:812187326544:web:52cd797c80ea20acf31955",
+            measurementId: "G-2LNCLGHWHF"
         };
         
         // Initialize Firebase
         const fireApp = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
 
         this.fireFunctions = getFunctions(fireApp, 'europe-west1');
         
