@@ -24,7 +24,7 @@ class FirebaseService {
         const fireApp = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
 
-        this.fireFunctions = getFunctions(fireApp, 'europe-west1');
+        this.fireFunctions = getFunctions(fireApp, 'nam5');
         
         if ('development' === Constants.ENV) {
             console.log("connected to emulator");
