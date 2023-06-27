@@ -6,7 +6,7 @@ const EMAIL_REG_EXP = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".
 const CONSTANTS = {
     COLLECTION_USERS: 'USERS',
     COLLECTION_SETTINGS: 'SETTINGS',
-    APP_NAME: 'OxHunt',
+    APP_NAME: 'YamaDemo',
     SECRET: 'JWT SECRET',
     ADMIN_ID: 'admin',
     // TODO Change SENDGRID_API_KEY
